@@ -1,5 +1,5 @@
 ---
-title: Building The Cluster: First Steps
+title: "Building The Cluster: First Steps"
 ---
 
 > This post is #2 in a series which will demonstrate
@@ -8,3 +8,4 @@ title: Building The Cluster: First Steps
 > begin with 
 > [Part 1: The New Cluster](https://dev.to/mikeyglitz/the-new-custer-12cf)
 
+test
