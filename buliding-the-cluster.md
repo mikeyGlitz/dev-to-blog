@@ -147,3 +147,54 @@ iptables -A OUTPUT -j ACCEPT
 
 ### DHCP
 
+
+DHCP is a network protocol which is used to 
+dynamically assign IP addresses to hosts that are
+connected to the network. During the handshake phase
+of establishing the network connection, the host
+requests an IP address and is assigned one with a
+DHCP lease.
+
+[isc-dhcp-server](https://www.isc.org/dhcp/) is used
+to perform DHCP services on the `172.16.0.0/29`
+network. isc-dhcp-server is installed with the
+following command:
+
+```bash
+sudo apt-get install -y isc-dhcp-server
+```
+
+`/etc/dhcp/dhcpd.conf` is used to configure the
+isc-dhcp-server. The following configuration is used
+to configure `/etc/dhcp/dhcpd.conf`:
+
+```
+ddns-update-style none;
+default-lease-time 600;
+max-lease-time 7200;
+#ping true;
+# option domain-name-servers 172.16.0.1;
+# option domain-name "haus.net";
+authorative;
+log-facility local7;
+
+subnet 172.16.0.0 netmask 255.255.255.248 {
+        range 172.16.0.1 172.16.0.6;
+        option subnet-mask 255.255.255.248;
+        option domain-name-servers 172.16.0.1;
+        option routers 172.16.0.1;
+        get-lease-hostnames true;
+        use-host-decl-names true;
+        default-lease-time 600;
+        max-lease-time 7200;
+}
+```
+
+The interface isc-dhcp-server listens on needs to be
+configured to listen on the `enx70886b81ddea`
+interface. The `/etc/default/isc-dhcp-server` file
+is where the interface can get set
+
+```
+INTERFACESv4="enx70886b81ddea"
+```
