@@ -1,5 +1,11 @@
 ---
 title: "Building The Cluster: First Steps"
+published: true
+tags:
+- kubernetes
+- cluster
+- homelab
+- linux
 ---
 
 > This post is #2 in a series which will demonstrate
@@ -257,7 +263,7 @@ There is a convenience utility for K3S called
 > using the `visudo` command
 >
 > ```text
-> <user>  ALL=(ALL) NOPASSWORD=ALL
+> <user>  ALL=(ALL) NOPASSWORD: ALL
 > ```
 >
 > **I do not normally recommend doing this as
