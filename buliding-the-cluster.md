@@ -29,6 +29,8 @@ nice with Swap partitions](https://serverfault.com/questions/881517/why-disable-
 
 There will be two networks in the cluster:
 
+[![Cluster Layout](https://drive.google.com/thumbnail?id=1dHOeEqZzHaXSzrT4xgDbA1spGr9_5uTm)](https://app.diagrams.net/?lightbox=1&highlight=0000ff&layers=1&nav=1&title=Home%20Cluster#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1dHOeEqZzHaXSzrT4xgDbA1spGr9_5uTm%26export%3Ddownload)
+
 - 192.168.0.0/24 - Used for internal LAN
 - 172.16.0.0/29 - Cluster network
 
@@ -198,3 +200,102 @@ is where the interface can get set
 ```
 INTERFACESv4="enx70886b81ddea"
 ```
+
+Restart the services and the networks on the master
+node will be configured.
+
+```bash
+systemctl restart isc-dhcp-server
+ifup wsl2p0             # Starts the wifi network
+ifup enx70886b81ddea    # Starts the Cluster network
+```
+
+### Compute Node Setup
+
+Setup for the compute node is easier than the master
+node. Edit `/etc/network/interfaces` with the
+following information:
+
+```text
+allow-hotplug eth0
+iface eth0 inet dhcp
+```
+
+This setup will configure each of the compute nodes
+to use DHCP from the master node that was set up
+earlier.
+
+> ⚠ The ethernet device is not always going to be
+> named `eth0`. Sometimes you'll have to check
+> the device name with the `ip a` command
+
+Hosts can be located on the 172.16.0.0/29 network by
+using the `nmap` utility.
+
+```bash
+nmap -sn 172.16.0.0/29
+```
+
+## Cluster Setup
+
+To set up the cluster, [K3S](https://k3s.io) is
+going to be used instead of
+[Kubernetes](https://kubernetes.io) due to the limited
+resources that the cluster is using.
+K3S is a lightweight flavor of Kubernetes developed
+by [Rancher](https://rancher.io).
+
+There is a convenience utility for K3S called
+[k3sup](https://github.com/alexellis/k3sup).
+
+> ⚠ I had issues setting up `k3sup`. The utility
+> would not run the proper SSH commands due to
+> my terminal not being connected to a TTY device.
+> This can be fixed with
+> [passwordless SSH](https://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/)
+> and adding your user to sudoers without a password
+> using the `visudo` command
+>
+> ```text
+> <user>  ALL=(ALL) NOPASSWORD=ALL
+> ```
+>
+> **I do not normally recommend doing this as
+> passwordless sudo is a security vulnerability**
+
+> ⚠ By default k3s will install containers using
+> [containerd](https://containerd.io). Some of the
+> operators I'll be using later will use
+> [Docker Manifest](https://docs.docker.com/engine/reference/commandline/manifest/).
+> Docker will have to be installed as a CNI.
+
+### Installing Docker
+
+Docker provides a convenience script which will
+perform an express installation. Docker will need
+to be installed on all cluster nodes.
+
+```bash
+curl -fsSL https://get.docker.com | sudo sh -
+```
+
+### Installing k3s
+
+With Docker installed, it's time to set up the
+Kubernetes cluster using k3s using `k3sup`.
+
+On the master node, run:
+
+```bash
+k3sup install --user manager --ip <external-ip> --k3s-extra-args '--docker'
+```
+
+On the compute node, run:
+
+```bash
+k3sup join --ip <node-ip> --server-ip <external-ip> --user manager --k3s-extra-args '--docker'
+```
+
+With these commands, your Kubernetes cluster with
+k3s should be active. You can begin to experiment with
+Kubernetes in your home lab!
