@@ -11,7 +11,7 @@ tags:
 > This post is #2 in a series which will demonstrate
 > creating a Kubernetes cluster using an on-prem
 > environment. If you're new to this series, please
-> begin with 
+> begin with
 > [Part 1: The New Cluster](https://dev.to/mikeyglitz/the-new-custer-12cf)
 
 # Installing the OS
@@ -147,10 +147,30 @@ NAT rules will need to be set using `iptables`.
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
 # NAT rules
-iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
-iptables -A INPUT -i eth0 -j ACCEPT
-iptables -A INPUT -i eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
-iptables -A OUTPUT -j ACCEPT
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE --random
+iptables -A FORWARD -i eth0 -o wlp2s0 -j ACCEPT
+iptables -A FORWARD -i wlp2s0 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -j DROP
+```
+
+The new rules will be cleared upon system reboot. It's important to
+persist them.
+
+```bash
+iptables-save > /etc/iptables.rules
+```
+
+Create the file at `/etc/network/if-pre-up.d/firewall` if it doesn't exist
+
+```bash
+#!/bin/bash
+/sbin/iptables-restore < /etc/iptables.rules
+```
+
+Add execute permissions to `/etc/network/if-pre-up.d/firewall`.
+
+```bash
+chmod +x /etc/network/if-pre-up.d/firewall
 ```
 
 ### DHCP
@@ -305,3 +325,17 @@ k3sup join --ip <node-ip> --server-ip <external-ip> --user manager --k3s-extra-a
 With these commands, your Kubernetes cluster with
 k3s should be active. You can begin to experiment with
 Kubernetes in your home lab!
+
+# Resources
+
+- [How to use WiFi - Debian](https://wiki.debian.org/WiFi/HowToUse)
+- [ISC-dhcp-server](https://help.ubuntu.com/community/isc-dhcp-server)
+- [iptables -- how to set up a server as a router with NAT](https://serverfault.com/questions/564866/how-to-set-up-linux-server-as-a-router-with-nat)
+- [How to save iptables rules in debian](https://websistent.com/how-to-save-iptables-rules-in-debian/)
+- [k3s installation requirements](https://rancher.com/docs/k3s/latest/en/installation/installation-requirements/)
+- [k3sup](https://github.com/alexellis/k3sup)
+- [passwordless ssh](https://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/)
+- [Passwordless Sudo](https://serverfault.com/questions/160581/how-to-setup-passwordless-sudo-on-linux)
+- [Will it cluster? k3s on your raspberry pi](https://blog.alexellis.io/test-drive-k3s-on-raspberry-pi/)
+
+> ℹ **Note:** Stay tuned for a guide on how to set up Kubernetes resources using Terraform
