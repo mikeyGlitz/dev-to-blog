@@ -326,6 +326,10 @@ With these commands, your Kubernetes cluster with
 k3s should be active. You can begin to experiment with
 Kubernetes in your home lab!
 
+> ⚠ There's an issue with k3s where iptables rules drops requests to 10.43.0.1:443 when using
+> Docker and Debian. I'm not sure how to fix this issue so
+> [I moved to Ubuntu](https://dev.to/mikeyglitz/building-the-cluster-revised-edition-2k5l).
+
 # Resources
 
 - [How to use WiFi - Debian](https://wiki.debian.org/WiFi/HowToUse)
