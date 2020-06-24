@@ -135,3 +135,27 @@ iptables-save > /etc/iptables/rules.v4
 
 Setting up the cluster should be the
 [same procedure as before](https://dev.to/mikeyglitz/building-the-cluster-first-steps-153o#cluster-setup).
+
+# Network Share
+
+The cluster has an external hard drive attached to it.
+The external hard drive will have to be made available to the Kubernetes cluster as a network share.
+The external hard drive can be exposed to the network by running a nfs server
+
+Install the nfs server
+
+```bash
+sudo apt install -y nfs-kernel-server
+```
+
+Expose the external hard drive by updating `/etc/exports`
+
+```text
+/mnt/external 172.16.0.0/29(rw,sync,no_subtree_check,no_root_squash)
+```
+
+Restart the NFS server and update the shares
+```bash
+sudo exportfs -av
+sudo systemctl restart nfs-kernel-server
+```
