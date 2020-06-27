@@ -1,5 +1,6 @@
 ---
 title: "Terraforming the Cluster"
+published: true
 tags:
 - terraform
 - kubernetes
@@ -69,3 +70,49 @@ $ mkdir -p ~/.terraform.d/plugins && \
     | xargs -n 1 curl -Lo ~/.terraform.d/plugins/terraform-provider-kubectl && \
     chmod +x ~/.terraform.d/plugins/terraform-provider-kubectl
 ```
+
+> ⚠ Unfortunately there were not Windows installation instructions on the kubectl provider
+> page. The above instructions should work for Windows Subsytem for Linux (WSL), Mac, and
+> Linux.
+
+# Provisioning Resources on Kubernetes
+
+With the installation of Terraform and the Kubernetes providers complete, Terraform can be
+configured to provision resources on the Kubernetes cluster. Create a file called `terraform.tf`.
+
+```terraform
+provider "kubernetes" {}
+
+provider "kubectl" {}
+```
+
+Both the Kubernetes provider and the kubectl provider provide custom options which can be found in
+the documentation:
+
+- Kubernetes provider - https://www.terraform.io/docs/providers/kubernetes/index.html
+- kubectl provider - https://gavinbunney.github.io/terraform-provider-kubectl/docs/provider.html
+
+The Terraform configuration can be initialized with the `terraform init` command.
+
+## Terraform specifications
+
+The kubectl provider offers YAML-based creation of Kubernetes resources using the `kubectl` plugin.
+
+An example of a namespace is demonstrated below:
+
+```terraform
+resource "kubectl_manifest" "mf_demo_ns" {
+    yaml_body = <<YAML
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+            name: demo
+    YAML
+}
+```
+
+The Kubernetes provider enables creation of Kubernetes resources which are standard to the
+Kubernetes Manifest DSL. Terraform provides
+[detailed documentation](https://gavinbunney.github.io/terraform-provider-kubectl/docs/provider.html)
+which correspond directly to Kubernetes constructs. The detailed configuration can be found on the
+**Data Sources** and **Resources** sections of the documentation.
