@@ -1,5 +1,5 @@
 ---
-title: "Building The Cluster: Revised Edition"
+title: 'Building The Cluster: Revised Edition'
 description: ''
 canonical_url: null
 cover_image: ''
