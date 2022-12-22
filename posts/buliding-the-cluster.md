@@ -1,5 +1,8 @@
 ---
 title: "Building The Cluster: First Steps"
+description: ''
+canonical_url: null
+cover_image: ''
 published: true
 tags:
 - kubernetes

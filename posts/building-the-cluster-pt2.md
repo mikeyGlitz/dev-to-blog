@@ -1,5 +1,8 @@
 ---
 title: "Building The Cluster: Revised Edition"
+description: ''
+canonical_url: null
+cover_image: ''
 tags:
 - kubernetes
 - cluster

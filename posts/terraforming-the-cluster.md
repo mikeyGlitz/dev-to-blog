@@ -1,6 +1,9 @@
 ---
 title: "Terraforming the Cluster"
+description: ''
 published: true
+canonical_url: null
+cover_image: ''
 tags:
 - terraform
 - kubernetes
