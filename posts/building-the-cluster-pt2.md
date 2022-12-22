@@ -4,11 +4,13 @@ description: ''
 canonical_url: null
 cover_image: ''
 tags:
-- kubernetes
-- cluster
-- homelab
-- linux
+  - kubernetes
+  - cluster
+  - homelab
+  - linux
 published: true
+id: 1306470
+date: '2022-12-22T23:34:19Z'
 ---
 
 After putting in the work to
