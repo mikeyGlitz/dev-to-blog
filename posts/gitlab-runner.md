@@ -9,6 +9,7 @@ cover_image: ''
 canonical_url: null
 published: true
 id: 1306471
+date: '2022-12-23T16:04:01Z'
 ---
 
 Recently I've become aware of new disruption which is occurring in computing hardware.
