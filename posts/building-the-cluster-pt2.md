@@ -1,7 +1,7 @@
 ---
 title: 'Building The Cluster: Revised Edition'
 description: ''
-series: 'Homelab Installation'
+series: Homelab Installation
 canonical_url: null
 cover_image: ''
 tags:
@@ -10,6 +10,8 @@ tags:
   - homelab
   - linux
 published: true
+id: 358064
+date: '2020-06-18T15:10:40Z'
 ---
 
 After putting in the work to

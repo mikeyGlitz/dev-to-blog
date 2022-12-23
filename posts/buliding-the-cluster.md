@@ -1,7 +1,7 @@
 ---
 title: 'Building The Cluster: First Steps'
 description: ''
-series: 'Homelab Installation'
+series: Homelab Installation
 canonical_url: null
 cover_image: ''
 tags:
@@ -10,6 +10,8 @@ tags:
   - homelab
   - linux
 published: true
+id: 353481
+date: '2020-06-12T03:26:47Z'
 ---
 
 > This post is #2 in a series which will demonstrate

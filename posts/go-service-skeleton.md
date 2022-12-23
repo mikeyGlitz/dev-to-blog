@@ -1,5 +1,5 @@
 ---
-title: 'Go API Project Set-Up'
+title: Go API Project Set-Up
 description: ''
 tags:
   - go
@@ -9,7 +9,9 @@ tags:
 cover_image: ''
 canonical_url: null
 published: false
+id: 1306503
 ---
+
 Have you ever wondered what goes into creating a production-ready workflow? Have you ever considered what kind of conventions to follow when you're beginning a new project?
 
 Recently I had the pleasure to experiment with producing a Go based web server to serve an API. Here are some lessons I've learned along the way.
