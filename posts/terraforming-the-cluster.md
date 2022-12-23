@@ -1,7 +1,6 @@
 ---
 title: "Terraforming the Cluster"
 description: ''
-published: true
 canonical_url: null
 cover_image: ''
 tags:
@@ -9,6 +8,7 @@ tags:
 - kubernetes
 - homelab
 - cluster
+published: true
 ---
 
 Terraform is a configuration management program which

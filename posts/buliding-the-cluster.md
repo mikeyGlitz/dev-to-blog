@@ -3,12 +3,12 @@ title: "Building The Cluster: First Steps"
 description: ''
 canonical_url: null
 cover_image: ''
-published: true
 tags:
 - kubernetes
 - cluster
 - homelab
 - linux
+published: true
 ---
 
 > This post is #2 in a series which will demonstrate
