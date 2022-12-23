@@ -1,13 +1,13 @@
 ---
 title: "Terraforming the Cluster"
 description: ''
+tags:
+  - terraform
+  - kubernetes
+  - homelab
+  - cluster
 canonical_url: null
 cover_image: ''
-tags:
-- terraform
-- kubernetes
-- homelab
-- cluster
 published: true
 ---
 
