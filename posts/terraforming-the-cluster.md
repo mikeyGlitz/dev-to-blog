@@ -6,8 +6,8 @@ tags:
   - kubernetes
   - homelab
   - cluster
-canonical_url: null
 cover_image: ''
+canonical_url: null
 published: true
 ---
 
