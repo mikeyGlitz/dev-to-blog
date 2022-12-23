@@ -1,6 +1,7 @@
 ---
 title: Terraforming the Cluster
 description: ''
+series: 'Homelab Installation'
 tags:
   - terraform
   - kubernetes
