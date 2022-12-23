@@ -8,7 +8,7 @@ tags:
   - pipelines
 cover_image: ''
 canonical_url: null
-published: false
+published: true
 id: 1306503
 ---
 
@@ -96,9 +96,8 @@ for a lot of the structs that I use in Go. Interfaces not only define
 a contract for which struct-based implementations should adhere,
 but they also provide a mechanism for which struct methods can be
 mocked. While I've experimented with the mock package in
-[testify](https://pkg.go.dev/github.com/stretchr/testify/mock),
-I've come to prefer the mock functionality which is provided by
-[mockgen](https://github.com/golang/mock).
+[testify](https://pkg.go.dev/github.com/stretchr/testify/mock), I've come to prefer the mock functionality which is
+provided by [mockgen](https://github.com/golang/mock).
 
 Mockgen is a utility which attaches to the `go generate` command.
 Mockgen will generate mocked structures to emulate behavior for
