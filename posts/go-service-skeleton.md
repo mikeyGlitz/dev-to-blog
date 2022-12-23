@@ -104,7 +104,6 @@ The generate line has the following sections:
 - `[package-path]` - The package that you want to mock
 - `[interface-name]` - The interface that you want to mock
 
-
 I add the following line to my `tools.go` file under `import`:
 
 ```go
@@ -164,30 +163,30 @@ Here is an example Makefile:
 
 ```Makefile
 clean:
-	@rm -rf ./internal/dataloaders/*_gen.go
-	@rm -rf ./internal/graph/model/models_gen.go
-	@rm -rf ./internal/graph/generated
-	@rm ./pantry-api
+    @rm -rf ./internal/dataloaders/*_gen.go
+    @rm -rf ./internal/graph/model/models_gen.go
+    @rm -rf ./internal/graph/generated
+    @rm ./pantry-api
 
 gen:
-	@go generate ./...
+    @go generate ./...
 
 lint: gen
-	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run
+    @go run github.com/golangci/golangci-lint/cmd/golangci-lint run
 
 test: gen
-	@go test -short ./...
+    @go test -short ./...
 
 integration: lint
-	@go test ./... -coverprofile=coverage.txt -covermode count
-	@go run gotest.tools/gotestsum --junitfile report.xml --format testname
-	@go run github.com/t-yuki/gocover-cobertura < coverage.txt > coverage.xml
+    @go test ./... -coverprofile=coverage.txt -covermode count
+    @go run gotest.tools/gotestsum --junitfile report.xml --format testname
+    @go run github.com/t-yuki/gocover-cobertura < coverage.txt > coverage.xml
 
 report: integration
-	@go tool cover -html coverage.txt -o coverage.html
+    @go tool cover -html coverage.txt -o coverage.html
 
 build: gen
-	@go build -ldflags "$(LDFLAGS)" -o pantry-api ./cmd/pantry-api
+    @go build -ldflags "$(LDFLAGS)" -o pantry-api ./cmd/pantry-api
 ```
 
 ## Containerization

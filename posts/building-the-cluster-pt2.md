@@ -161,6 +161,7 @@ Expose the external hard drive by updating `/etc/exports`
 ```
 
 Restart the NFS server and update the shares
+
 ```bash
 sudo exportfs -av
 sudo systemctl restart nfs-kernel-server

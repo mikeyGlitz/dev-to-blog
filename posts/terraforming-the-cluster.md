@@ -24,19 +24,19 @@ Hashicorp Configuration Language (HCL).
 Terraform can be downloaded from the
 [Terraform website](https://www.terraform.io/downloads.html).
 
-### Mac install
+## Mac install
 
 ```bash
 brew install terraform
 ```
 
-### Windows Install
+## Windows Install
 
 ```powershell
 choco install terraform
 ```
 
-### Linux Install
+## Linux Install
 
 ```bash
 wget https://releases.hashicorp.com/terraform/0.12.26/terraform_0.12.26_linux_amd64.zip

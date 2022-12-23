@@ -181,8 +181,7 @@ chmod +x /etc/network/if-pre-up.d/firewall
 
 ### DHCP
 
-
-DHCP is a network protocol which is used to 
+DHCP is a network protocol which is used to
 dynamically assign IP addresses to hosts that are
 connected to the network. During the handshake phase
 of establishing the network connection, the host
@@ -202,7 +201,7 @@ sudo apt-get install -y isc-dhcp-server
 isc-dhcp-server. The following configuration is used
 to configure `/etc/dhcp/dhcpd.conf`:
 
-```
+```text
 ddns-update-style none;
 default-lease-time 600;
 max-lease-time 7200;
@@ -229,7 +228,7 @@ configured to listen on the `enx70886b81ddea`
 interface. The `/etc/default/isc-dhcp-server` file
 is where the interface can get set
 
-```
+```text
 INTERFACESv4="enx70886b81ddea"
 ```
 
