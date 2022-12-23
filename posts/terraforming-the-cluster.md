@@ -1,5 +1,5 @@
 ---
-title: "Terraforming the Cluster"
+title: Terraforming the Cluster
 description: ''
 tags:
   - terraform
@@ -9,6 +9,8 @@ tags:
 cover_image: ''
 canonical_url: null
 published: true
+id: 371086
+date: '2020-06-27T13:07:44Z'
 ---
 
 Terraform is a configuration management program which
