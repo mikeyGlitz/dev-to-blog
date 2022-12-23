@@ -1,14 +1,16 @@
 ---
-title: "Building The Cluster: First Steps"
+title: 'Building The Cluster: First Steps'
 description: ''
 canonical_url: null
 cover_image: ''
 tags:
-- kubernetes
-- cluster
-- homelab
-- linux
+  - kubernetes
+  - cluster
+  - homelab
+  - linux
 published: true
+id: 1306499
+date: '2022-12-23T01:31:56Z'
 ---
 
 > This post is #2 in a series which will demonstrate
