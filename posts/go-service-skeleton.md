@@ -10,6 +10,7 @@ cover_image: ''
 canonical_url: null
 published: true
 id: 1306503
+date: '2022-12-23T20:18:49Z'
 ---
 
 Have you ever wondered what goes into creating a production-ready
