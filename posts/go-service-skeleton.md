@@ -6,6 +6,7 @@ tags:
   - tutorial
   - beginners
   - pipelines
+series: 'Developing a GraphQL service'
 cover_image: ''
 canonical_url: null
 published: true
