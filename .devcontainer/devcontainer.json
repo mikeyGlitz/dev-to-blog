@@ -14,7 +14,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"docsmsft.docs-authoring-pack"
+				"docsmsft.docs-authoring-pack",
+				"bierner.emojisense"
 			]
 		}
 	}
