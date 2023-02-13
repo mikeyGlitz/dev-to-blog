@@ -9,15 +9,15 @@ tags:
 cover_image: ''
 canonical_url: null
 published: false
+id: 1363303
 ---
 
 ## Managing Certificates
 
 Generally speaking it is good practice to secure communication with
 your database. Before we can deploy OpenSearch, we would first have
-to create certificates. [cert-manager](https://cert-manager.io) is a helpful
-tool which can be deployed onto Kubernetes to create and manage
-certificates.
+to create certificates. [cert-manager](https://cert-manager.io) is a helpful tool which can be deployed
+onto Kubernetes to create and manage certificates.
 With our applications being disbursed across several different
 namespaces, creating certificates will take place across multiple
 stages:
