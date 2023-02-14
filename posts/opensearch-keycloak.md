@@ -8,9 +8,39 @@ tags:
   - elastic
 cover_image: ''
 canonical_url: null
-published: false
+published: true
 id: 1363303
 ---
+
+Having developed multiple web applications, search is an important
+capability for a lot of the projects I've worked on. Earlier in my
+career, search capabilities were provided by using simple query searches
+
+i.e.:
+```sql
+SELECT * from users where name like '%term%';
+```
+
+As you could imagine, this is not the most accurate search and can get
+very complicated when it comes to attempting to search through multiple
+fields.
+
+A database product, ElasticSearch was developed based on the Lucene index
+which enables functionality such as fuzzy searches, and ranks search
+results based on partial matches.
+
+In 2021, OpenSearch was introduced as a result of ElasticSearch no
+longer using the Apache license. OpenSearch is a fork of ElasticSearch
+7.10 - the last version of ElasticSearch to use the Apache 2.0 license.
+OpenSearch is backed by the Amazon Web Services and the OpenSearch community.
+
+As a result of the AWS backing, my organizations have shifted to using
+OpenSearch at work. With the exposure at work, I've begun to leverage
+OpenSearch in my personal projects.
+
+This tutorial demonstrates how to deploy an OpenSearch cluster with
+OpenID authentication using Keycloak on a Kubernetes cluster.
+Deployments are shown using Ansible tasks.
 
 ## Managing Certificates
 
