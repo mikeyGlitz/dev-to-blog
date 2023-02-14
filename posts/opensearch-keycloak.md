@@ -378,7 +378,58 @@ HTTP hostname against the hostname provided by the certificate.
 from the token issued by the OpenID provider.
 `auth.type` instructs OpenSearch Dashboards to use OpenID for user logins.
 
-Refer to the [OpenSearch](https://github.com/opensearch-project/helm-charts/blob/main/charts/opensearch/values.yaml) and the [OpenSearch Dashboards](https://github.com/opensearch-project/helm-charts/blob/main/charts/opensearch-dashboards/values.yaml) helm charts for how to deploy.
+Refer to the [OpenSearch](https://github.com/opensearch-project/helm-charts/blob/main/charts/opensearch/values.yaml) and the [OpenSearch Dashboards](https://github.com/opensearch-project/helm-charts/blob/main/charts/opensearch-dashboards/values.yaml) for all the supported values for OpenSearch and OpenSearch Dashboards deployment.
+
+The configuration in `opensearch-security/config.yml` will be added to
+the OpenSearch helm chart like so:
+
+```yml
+- name: Deploy OpenSearch
+  kubernetes.core.helm:
+    release_name: opensearch
+    release_namespace: opensearch
+    chart_ref: opensearch
+    chart_repo_url: https://opensearch-project.github.io/helm-charts
+    values:
+      replicas: 1
+      minimumMasterNodes: 0
+      securityConfig:
+        enabled: true
+        config:
+          dataComplete: false
+          data:
+            config.yml: |-
+              {{ opensearch_security_config }}
+```
+
+I've omitted values for `opensearch.yml`, volumes, and volume mounts.
+Volumes and volume mounts will be required for security configuration
+to mount the SSL certificates.
+
+The configuration in `opensearch_dashboards.yml` can be added to the
+opensearch-dashboards release like so:
+
+```yml
+- name: Deploy OpenSearch Dashboards
+  kubernetes.core.helm:
+    release_name: opensearch-dashboards
+    release_namespace: opensearch
+    chart_ref: opensearch-dashboards
+    chart_repo_url: https://opensearch-project.github.io/helm-charts
+    values:
+      config:
+        opensearch_dashboards.yml: |-
+        {{ opensearch_dashboards_config }}
+```
+
+Once the deployments are complete, Dashboards should be accessible
+through Kubernetes port forwarding
+
+```bash
+kubectl port-forward services/opensearch-dashboards 5601:5601 -n opensearch
+```
+
+The backends are visible through the OpenSearch Security page.
 
 ![Dashboards Backends](./assets/Images/keycloak-opensearch/Screen%20Shot%202023-02-13%20at%207.07.56%20PM.png)
 
