@@ -252,8 +252,140 @@ There are two different ways to deploy OpenSearch to Kubernetes:
 [The OpenSearch Operator](https://opensearch.org/docs/2.5/tools/k8s-operator/) or through using the [OpenSearch Helm Chart](https://github.com/opensearch-project/helm-charts/tree/main/charts/opensearch).
 This guide will provide the steps for a helm-based deployment.
 
+There are two main configuration files which connect OpenSearch to an
+OpenID provider, in this case, Keycloak: `opensearch-security/config.yml`
+and `opensearch-dashboards.yml`.
+`opensearch-security/config.yml` connects the OpenSearch security plugin
+and `opensearch_dashboards.yml` connects the OpenSearch Dashboards UI.
+
+`opensearch-security/config.yml`
+
+```yml
+_meta:
+  type: "config"
+  config_version: 2
+config:
+  dynamic:
+    authz: {}
+    authc:
+      basic_internal_auth_domain:
+        http_enabled: true
+        transport_enabled: true
+        order: 1
+        http_authenticator:
+          type: basic
+          challenge: false
+        authentication_backend:
+          type: intern
+
+      openid_auth_domain:
+        http_enabled: true
+        transport_enabled: true
+        order: 0
+        http_authenticator:
+          type: openid
+          challenge: false
+          config:
+            openid_connect_idp:
+              enable_ssl: true
+              verify_hostnames: false
+              pemtrustedcas_filepath: /usr/share/opensearch/config/root-ca/root.ca.crt
+            subject_key: preferred_username
+            roles_key: roles
+            openid_connect_url: "{{ keycloak_url }}/auth/realms/pantry/.well-known/openid-configuration"
+        authentication_backend:
+          type: noop
+```
+
+`_meta` contains the metadata configuration which is boilerplate
+designations for the file as a configuration file. `config` contains
+the configuration that the OpenSearch Security plugin will use to
+configure how authentication and authorization will be managed in
+OpenSearch.
+
+`authc` contains [authentication backends](https://opensearch.org/docs/latest/security/authentication-backends/authc-index/).
+The authentication backends which are provided by the configuration
+snippet are basic, and openid. The basic authentication is used for the
+built-in users (i.e. admin, kibanaserver).
+The openid backend is used to connect to Keycloak.
+
+`openid_connect_url` points to the OpenID provider URL. OpenSearch
+expects the URL to point to a `.well-known/openid-configuration` endpoint
+which is used to fetch the metadata configuration.
+
+`roles_key` points to the field on the JWT which is issued by the
+OpenID provider where the realm roles are set. The roles are used to
+map the OpenID realm roles to OpenSearch roles for fine-grained
+access control.
+
+`subject_key` points to the field on the JWT which is issued by the
+OpenID provider where the username is located. This field is usually
+`username`, `preferred_username`, or `email`.
+
+`openid_connect_idp` contains the details which are used to provide
+TLS/SSL values to the OpenID server. `enable_ssl` tells OpenSearch
+that the OpenID connection is over SSL. `verify_hostnames` instructs
+OpenSearch whether or not to verify the HTTP hostname against the
+hostname provided by the certificate. `pemtrustedcas_filepath`
+contains the file path to the root Certificate Authority certificate file
+which is used to verify the certificate. Certificate verification prevents
+man-in-the-middle attacks or certificate impersonation.
+
+Based on the OpenSearch documentation, setting the `authentication_backend`
+to `noop` is required because JSON web-tokens already contain the
+required information to verify the request.
+
+`opensearch_dashboards.yml`
+
+```yml
+server:
+  name: dashboards
+  host: 0.0.0.0
+  ssl:
+    enabled: true
+    key: /usr/share/dashboards/certs/tls.key
+    certificate: /usr/share/dashboards/certs/tls.crt
+opensearch_security:
+  auth.type: openid
+  openid:
+    connect_url: https://{{ domain_name }}/auth/realms/pantry/.well-known/openid-configuration
+    base_redirect_url: https://localhost:5601
+    client_id: opensearch-dashboards
+    client_secret: {{ os_client_secret }}
+    scope: openid profile email
+    header: Authorization
+    verify_hostnames: false
+    root_ca: /usr/share/dashboards/root-ca/root.ca.crt
+    trust_dynamic_headers: "true"
+opensearch:
+  requestHeadersAllowlist: ["Authorization", "security_tenant"]
+  hosts: [ "opensearch-cluster-master" ]
+  username: "kibanaserver"
+  password: "kibanaserver"
+  ssl:
+    certificateAuthorities: /usr/share/dashboards/certs/ca.crt
+```
+
+`client_id` contains the OpenID client ID which OpenSearch Dashboards
+will use to authenticate with Keycloak.
+`client_secret` contains the client secret which OpenSearch Dashboards
+will use to authenticate with Keycloak.
+`root_ca` contains the root CA path for OpenSearch Dashboards to verify
+the OpenID provider (Keycloak) certificate.
+`verify_hostnames` instructs OpenSearch whether or not to verify the
+HTTP hostname against the hostname provided by the certificate.
+`scope` contains the scopes which are used to determine the identity
+from the token issued by the OpenID provider.
+`auth.type` instructs OpenSearch Dashboards to use OpenID for user logins.
+
+Refer to the [OpenSearch](https://github.com/opensearch-project/helm-charts/blob/main/charts/opensearch/values.yaml) and the [OpenSearch Dashboards](https://github.com/opensearch-project/helm-charts/blob/main/charts/opensearch-dashboards/values.yaml) helm charts for how to deploy.
+
+![Dashboards Backends](./assets/Images/keycloak-opensearch/Screen%20Shot%202023-02-13%20at%207.07.56%20PM.png)
+
 ## References
 
 - Keycloak OpenSearch - https://github.com/cht42/opensearch-keycloak
 - OpenID Backend Documentation - https://opensearch.org/docs/latest/security/authentication-backends/openid-connect/
 - Configuring OpenSearch 2.x With OpenID - https://www.rushworth.us/lisa/?p=9370
+- OpenSearch Dashboards helm chart - https://github.com/opensearch-project/helm-charts/blob/main/charts/opensearch-dashboards/values.yaml
+- OpenSearch helm chart - https://github.com/opensearch-project/helm-charts/blob/main/charts/opensearch/values.yaml
