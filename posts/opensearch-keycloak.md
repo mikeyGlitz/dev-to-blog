@@ -10,6 +10,7 @@ cover_image: ''
 canonical_url: null
 published: true
 id: 1363303
+date: '2023-02-14T14:40:52Z'
 ---
 
 Having developed multiple web applications, search is an important
