@@ -177,9 +177,83 @@ to keep the code snippet small. The above snippet provisions two
 roles on our Keycloak IDp which will map directly to OpenSearch roles
 with the same names.
 
+A client will also need to be prepared so that OpenSearch may
+authenticate with Keycloak as an OpenID backend. The below Ansible
+snippet demonstrates how to set up the client using the
+`community.general.keylcloak_client` plugin.
+
+```yml
+- name: Deploy OpenSearch Client
+  community.general.keycloak_client:
+    auth_keycloak_url: "{{ keycloak_url }}"
+    auth_realm: master
+    validate_certs: false
+    auth_username: "{{ keycloak_user }}"
+    auth_password: "{{ keycloak_password }}"
+    client_id: opensearch-dashboards
+    secret: "{{ os_client_secret }}"
+    realm: "{{ realm_name }}"
+    enabled: true
+    direct_access_grants_enabled: true
+    authorization_services_enabled: true
+    service_accounts_enabled: true
+    redirect_uris:
+      # localhost:5601 is used as the OpenSearch-Dashboards URL
+      - https://localhost:5601/*
+    protocol_mappers:
+      - name: opensearch-audience
+        protocol: openid-connect
+        protocolMapper: oidc-audience-mapper
+        config:
+          id.token.claim: "true"
+          access.token.claim: "true"
+          included.client.audience: opensearch-dashboards
+      - name: opensearch-role-mapper
+        protocol: openid-connect
+        protocolMapper: oidc-usermodel-realm-role-mapper
+        config: {
+          "multivalued": "true",
+          "userinfo.token.claim": "true",
+          "id.token.claim": "true",
+          "access.token.claim": "true",
+          "claim.name": "roles",
+          "jsonType.label": "String"
+        }
+```
+
+`direct_access_grants_enabled` enables Keycloak direct access grants
+which allows the client to authenticate users by directly using
+username/password combos.
+
+`service_accounts_enabled` is for future use which will enable the
+Keycloak client to use service accounts (i.e. to authenticate applications).
+
+`authorization_services_enabled` enables fine-grained authorization
+support for a client.
+
+In the `protocol_mappers` section, two protocol mappers are created.
+The protocol mappers are utilized to map different items to fields on
+the JWT which is returned once a user logs in. For OpenSearch
+OpenID authentication, OpenSearch looks for a key to identify the
+roles associated with a user account to map to an OpenSearch role
+which will determine which functions that the user is allowed to access.
+
+I'm not exactly sure if the audience-mapper is needed, but I left it
+in there since I've used it for other authentication purposes
+(i.e. express-passport)
+
+![OpenSearch Keycloak Client](./assets/Images/keycloak-opensearch/Screen%20Shot%202023-02-13%20at%207.02.34%20PM.png)
+![OpenSearch Audience Mapper](./assets/Images/keycloak-opensearch/Screen%20Shot%202023-02-13%20at%207.02.40%20PM.png)
+![OpenSearch Role Mapper](./assets/Images/keycloak-opensearch/Screen%20Shot%202023-02-13%20at%207.02.47%20PM.png)
+
 ## Deploying OpenSearch
 
 There are two different ways to deploy OpenSearch to Kubernetes:
-[The OpenSearch Operator](https://opensearch.org/docs/2.5/tools/k8s-operator/) or through
-using the [OpenSearch Helm Chart](https://github.com/opensearch-project/helm-charts/tree/main/charts/opensearch).
+[The OpenSearch Operator](https://opensearch.org/docs/2.5/tools/k8s-operator/) or through using the [OpenSearch Helm Chart](https://github.com/opensearch-project/helm-charts/tree/main/charts/opensearch).
 This guide will provide the steps for a helm-based deployment.
+
+## References
+
+- Keycloak OpenSearch - https://github.com/cht42/opensearch-keycloak
+- OpenID Backend Documentation - https://opensearch.org/docs/latest/security/authentication-backends/openid-connect/
+- Configuring OpenSearch 2.x With OpenID - https://www.rushworth.us/lisa/?p=9370
