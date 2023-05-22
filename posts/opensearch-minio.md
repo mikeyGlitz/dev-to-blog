@@ -1,16 +1,15 @@
 ---
 title: OpenSearch Snapshots with Min.io
-description: >
-    Back up your OpenSearch cluster with object-based storage using
-    Min.io
+description: Back up your OpenSearch cluster with object-based storage using Min.io
 tags:
-- devops
-- tutorial
-- elastic
+  - devops
+  - tutorial
+  - elastic
 series: OpenSearch on Kubernetes
 cover_image: ''
 canonical_url: null
 published: false
+id: 1476678
 ---
 Retaining data is a critical responsibility for any business that stores and manages customer information. Data loss or corruption can arise from various factors, including hardware failures and human errors. The risks associated with data loss can be mitigated by implementing regular backups. OpenSearch, similar to many other databases, manages backups through the use of snapshots. By leveraging snapshots, OpenSearch can create secure point-in-time copies of data.
 
