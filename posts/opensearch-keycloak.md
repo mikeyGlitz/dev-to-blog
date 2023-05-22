@@ -7,6 +7,7 @@ tags:
   - tutorial
   - elastic
 cover_image: ''
+series: OpenSearch on Kubernetes
 canonical_url: null
 published: true
 id: 1363303
