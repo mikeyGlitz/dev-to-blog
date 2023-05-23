@@ -165,13 +165,268 @@ By implementing the `InitDB` function, we create a reusable and efficient method
 
 ## Enhanced Searchability: Indexing Data with OpenSearch
 
+With a basic data layer established, it's time to explore the next step: making the data searchable. In this regard, we will leverage OpenSearch to index our data. OpenSearch, a fork of Elasticsearch created by Amazon Web Services, provides a powerful search engine that enhances data retrieval capabilities. While OpenSearch inherits many features from Elasticsearch, it stands out as a fully open-source solution that offers more features for free.
+
+To kickstart our OpenSearch implementation, we first need to model the OpenSearch connection. Our goal is to implement four primary operations in OpenSearch: inserting a new record, updating an existing record, deleting a record, and retrieving search results.
+
+```go
+package index
+
+type OpenSearchConnection interface {
+  Insert(index string, payload interface{}) error
+  Delete(index string, id string) error
+  Update(index string, id string, updates interface{}) error
+}
+```
+
+With a basic data layer established, it's time to explore the next step: making the data searchable. In this regard, we will leverage OpenSearch to index our data. OpenSearch, a fork of Elasticsearch created by Amazon Web Services, provides a powerful search engine that enhances data retrieval capabilities. While OpenSearch inherits many features from Elasticsearch, it stands out as a fully open-source solution that offers more features for free.
+
+To kickstart our OpenSearch implementation, we first need to model the OpenSearch connection. Our goal is to implement four primary operations in OpenSearch: inserting a new record, updating an existing record, deleting a record, and retrieving search results.
+
+### Implementing the OpenSearch Client
+
+The `Client` struct implements the `OpenSearchConnection` interface and serves as a container for the OpenSearch client object. Additionally, we introduce a `handleBodyError` function to handle error messages received from OpenSearch.
+
+```go
+type Client struct {
+  DB *opensearch.Client
+}
+
+func handleBodyError(status string, responseBytes []byte) error {
+  res := gjson.GetManyBytes(responseBytes, "error.type", "error.reason")
+  return fmt.Errorf(
+    "[ %s ] %s: %s",
+    status,
+    res[0].String(),
+    res[1].String(),
+  )
+}
+
+func (idx *Client) Insert(index string, payload interface{}) error {
+  log.Debugf("[opensearch.insert] inserting record into index %s:\n%v", index, payload)
+  res, err := idx.DB.Index(index, opensearchutil.NewJSONReader(&payload))
+  if err != nil {
+    log.Errorf("[opensearch.insert] unable to insert document into OpenSearch => %v", err)
+    return err
+  }
+  defer res.Body.Close()
+  responseBytes, err := io.ReadAll(res.Body)
+  if err != nil {
+    log.Errorf("[opensearch.insert] unable to parse JSON response => %v", err)
+    return err
+  }
+  if res.IsError() {
+    err := handleBodyError(res.Status(), responseBytes)
+    log.Errorf("[opensearch.insert] received error response from OpenSearch => %v", err)
+    return err
+  }
+  inserted := gjson.GetBytes(responseBytes, "result")
+  log.Debugf("[opensearch.insert] insertion result => %s", inserted.String())
+
+  return nil
+}
+
+// ... (rest of the functions)
+```
+
+The provided code defines the `Client` struct, which implements the `OpenSearchConnection` interface. It includes methods for inserting, updating, deleting, and searching records in OpenSearch. The `handleBodyError` function is used to handle error messages received from OpenSearch.
+
+In the `Insert` method, a record is inserted into the specified index using the OpenSearch client. The response is processed, and any errors or relevant information are logged accordingly.
+
+The `Update` and `Delete` methods follow a similar pattern, leveraging the OpenSearch client to perform the respective operations and handling the responses appropriately.
+
+The `Search` method relies on a couple of additional helpers:
+A `SearchResponse` struct to store the JSON structure of the search result,
+and a function `parseSearchResults` to parse the OpenSearch response into
+usable search results.
+
+```go
+type SearchResponse struct {
+ Hits     int                       // The number of results returned from the search
+ Results  []map[string]gjson.Result // An array of results
+ LastItem string                    // The ID of the last item in the list
+}
+
+func parseSearchResult(responseBytes []byte, isGeneric bool) (*SearchResponse, error) {
+ res := gjson.GetManyBytes(responseBytes, "hits.total.value", "hits.hits")
+ hits, err := strconv.Atoi(res[0].String())
+ if err != nil {
+  return nil, err
+ }
+ results := res[1].Array()
+ mapped := make([]map[string]gjson.Result, 0)
+ if len(results) > 0 {
+  mapped = funk.Map(results, func(elem gjson.Result) map[string]gjson.Result {
+   source := elem.Map()["_source"]
+   if !isGeneric {
+    return source.Map()
+   }
+
+   index := elem.Map()["_index"]
+   sourceFields := source.Map()
+   document := make(map[string]gjson.Result)
+   document["index"] = index
+   for key, element := range sourceFields {
+    document[key] = element
+   }
+   return document
+  }).([]map[string]gjson.Result)
+  log.Debugf("Received results => %v", mapped)
+ }
+
+ response := &SearchResponse{
+  Hits:    hits,
+  Results: mapped,
+ }
+
+ if len(results) > 0 {
+  lastElem := funk.Last(results).(gjson.Result)
+  lastId := gjson.Get(lastElem.Raw, "id").String()
+  response.LastItem = lastId
+ }
+
+ return response, nil
+}
+
+func (idx *Client) Search(index string, payload *map[string]interface{}, order string, startAt int, size int) (*SearchResponse, error) {
+ sort := []map[string]interface{}{{
+  "updatedAt": map[string]interface{}{"order": order},
+ }}
+
+ pageSize := 10
+ if size != 0 {
+  pageSize = size
+ }
+
+ query := &map[string]interface{}{
+  "match_all": map[string]interface{}{},
+ }
+
+ reqBody := map[string]interface{}{
+  "query": query,
+  "sort":  sort,
+  "size":  pageSize,
+  "from":  startAt,
+ }
+
+ res, err := idx.DB.Search(idx.DB.Search.WithIndex(index), idx.DB.Search.WithBody(opensearchutil.NewJSONReader(&reqBody)))
+ if err != nil {
+  log.Errorf("[opensearch.search] encountered error while attempting to search:\n%v", err)
+  return nil, err
+ }
+ defer res.Body.Close()
+ bodyBytes, err := io.ReadAll(res.Body)
+ if err != nil {
+  log.Errorf("[opensearch.search] unable to read in response body:\n%v", err)
+  return nil, err
+ }
+ if res.IsError() {
+  err := handleBodyError(res.Status(), bodyBytes)
+  log.Errorf("[opensearch.search] OpenSearch responded with error:\n%v", err)
+  return nil, err
+ }
+ // If we're searching in all indices, we want to change the shape of the response
+ genericResult := index == "_all"
+ parsedResult, err := parseSearchResult(bodyBytes, genericResult)
+ if err != nil {
+  log.Errorf("[opensearch.search] unable to parse search response:\n%v", err)
+  return nil, err
+ }
+ return parsedResult, nil
+}
+```
+
+By encapsulating the OpenSearch functionality within the `Client` struct and implementing the `OpenSearchConnection` interface, we ensure a modular and extensible design for interacting with OpenSearch in our application.
+
+### Connecting to OpenSearch
+
+Much like we saw in the previous section on how to establish a connection to our data persistance layer using Gorm, we'll now examine how to establish a connection to OpenSearch and leverage its capabilities within our application. We'll begin by introducing the `InitializeClient()` function, which plays a crucial role in initializing the OpenSearch connection. This function retrieves configuration values from the environment and sets up the necessary components for communication with OpenSearch. Let's dive into the details.
+
+```go
+var IndexConnection OpensearchConnection
+
+func InitializeClient() error {
+    esConfig := config.Config.Opensearch
+
+    config := opensearch.Config{
+        Addresses: esConfig.Addresses,
+        Username:  esConfig.Username,
+        Password:  esConfig.Password,
+    }
+
+ if len(esConfig.CertificatePath) > 0 {
+  log.Infof("Reading certificate from %s...", esConfig.CertificatePath)
+  esCert, err := certificateFileReader(esConfig.CertificatePath)
+  if err != nil {
+   log.Errorf("[opensearch.initialization] Unable to read in CA certificate file at %s => %v", esConfig.CertificatePath, err)
+   return err
+  }
+  esCa := x509.NewCertPool()
+  if ok := esCa.AppendCertsFromPEM(esCert); !ok {
+   err := errors.New("unable to add certificate to certificate pool")
+   log.Errorf("[opensearch.initialization] Encountered an error adding certificate to pool => %v", err)
+   return err
+  }
+
+  config.Transport = &http.Transport{
+   TLSClientConfig: &tls.Config{RootCAs: esCa},
+  }
+  log.Info("Successfully loaded certificate")
+ }
+
+    client, err := opensearch.NewClient(config)
+    if err != nil {
+        log.Errorf("[opensearch.initialization] Unable to create elasticsearch connection => %v", err)
+        return err
+    }
+
+    IndexConnection = &Client{DB: client}
+
+    return nil
+}
+```
+
+In the given code block, the `InitializeClient()` function demonstrates how to establish a connection to OpenSearch. It starts by retrieving the OpenSearch configuration from the environment settings. The configuration includes addresses, username, and password required for the connection.
+
+To ensure secure communication, the function supports certificate-based authentication. If a certificate path is provided in the configuration, the function reads the certificate file and adds it to the certificate pool.
+
+Once the necessary configurations are set, the function creates an OpenSearch client using the specified settings. The created client is assigned to the `DB` field of the `Client` struct, which is then assigned to the `IndexConnection` variable. This package-level variable allows other parts of the application to access the OpenSearch client conveniently.
+
+By utilizing the `InitializeClient()` function, we can establish a connection to OpenSearch and prepare the client for subsequent database operations.
+
+### Synching with the Database
+
+Having set up the `OpenSearchConnection` interface, we can now leverage [gorm hooks](https://gorm.io/docs/hooks.html) to synchronize database operations with OpenSearch. This synchronization ensures that when CRUD operations are performed on the data model, the corresponding changes are also reflected in OpenSearch.
+
+We will begin by integrating hooks into our data models. Gorm offers the following hooks to handle specific events:
+
+- `AfterCreate`
+- `AfterUpdate`
+- `AfterDelete`
+
+For example, let's consider the `AfterDelete` hook implementation below:
+
+```go
+func (i *Ingredient) AfterDelete(txn *gorm.DB) error {
+  client := index.IndexConnection
+  err := client.Delete("ingredients", i.ID)
+  if err != nil {
+    log.Errorf("Unable to delete ingredient from OpenSearch: %v", err)
+  }
+}
+```
+
+In this code snippet, the `AfterDelete` hook is used to synchronize the deletion of an ingredient from the OpenSearch index. The hook retrieves the OpenSearch connection from `index.IndexConnection` and calls the `Delete` method to remove the corresponding ingredient using its ID. If any error occurs during the deletion process, an error message is logged.
+
+By leveraging Gorm hooks, we can seamlessly integrate OpenSearch with our data models and ensure that database operations trigger synchronized actions in OpenSearch, maintaining data consistency between the two systems.
+
 ## Seamless Upgrades: Migrating Data
 
 ## References
 
-- gormigrate - https://github.com/go-gormigrate/gormigrate
-- testcontainers with elasticsearch - https://riferrei.com/using-testcontainers-go-with-elasticsearch/
-- Keycloak golang webservices - https://mikebolshakov.medium.com/keycloak-with-go-web-services-why-not-f806c0bc820a
-- Opinionated graphql server with go - https://dev.to/cmelgarejo/creating-an-opinionated-graphql-server-with-go-part-1-3g3l
-- Custom GraphQL validation - https://david-yappeter.medium.com/gqlgen-custom-data-validation-part-1-7de8ef92de4c
-- Custom error types with go - https://klotzandrew.com/blog/error-handling-in-golang
+- gormigrate - <https://github.com/go-gormigrate/gormigrate>
+- testcontainers with elasticsearch - <https://riferrei.com/using-testcontainers-go-with-elasticsearch/>
+- Keycloak golang webservices - <https://mikebolshakov.medium.com/keycloak-with-go-web-services-why-not-f806c0bc820a>
+- Opinionated graphql server with go - <https://dev.to/cmelgarejo/creating-an-opinionated-graphql-server-with-go-part-1-3g3l>
+- Custom GraphQL validation - <https://david-yappeter.medium.com/gqlgen-custom-data-validation-part-1-7de8ef92de4c>
+- Custom error types with go - <https://klotzandrew.com/blog/error-handling-in-golang>
