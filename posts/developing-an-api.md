@@ -1,6 +1,6 @@
 ---
-title: "Building Robust Applications in Go: Integrating Envconfig, Gorm, and OpenSearch"
-description: "Learn how to build robust and scalable applications in Go by integrating essential tools and technologies such as Envconfig for configuration management, Gorm for data persistence, and OpenSearch for efficient data indexing. Explore step-by-step implementation and best practices to enhance your Go development skills."
+title: 'Building Robust Applications in Go: Integrating Envconfig, Gorm, and OpenSearch'
+description: 'Learn how to build robust and scalable applications in Go by integrating essential tools and technologies such as Envconfig for configuration management, Gorm for data persistence, and OpenSearch for efficient data indexing. Explore step-by-step implementation and best practices to enhance your Go development skills.'
 tags:
   - go
   - tutorial
@@ -182,7 +182,7 @@ By implementing the `InitDB` function, we create a reusable and efficient method
 
 With a basic data layer established, it's time to explore the next step: making the data searchable. In this regard, we will leverage OpenSearch to index our data. OpenSearch, a fork of Elasticsearch created by Amazon Web Services, provides a powerful search engine that enhances data retrieval capabilities. While OpenSearch inherits many features from Elasticsearch, it stands out as a fully open-source solution that offers more features for free.
 
-To kickstart our OpenSearch implementation, we first need to model the OpenSearch connection. Our goal is to implement four primary operations in OpenSearch: inserting a new record, updating an existing record, deleting a record, and retrieving search results.
+To kickstart our OpenSearch implementation, we first need to model the OpenSearch connection. Our goal is to implement three primary operations in OpenSearch: inserting a new record, updating an existing record, deleting a record, and retrieving search results.
 
 ```go
 package index
@@ -196,7 +196,7 @@ type OpenSearchConnection interface {
 
 With a basic data layer established, it's time to explore the next step: making the data searchable. In this regard, we will leverage OpenSearch to index our data. OpenSearch, a fork of Elasticsearch created by Amazon Web Services, provides a powerful search engine that enhances data retrieval capabilities. While OpenSearch inherits many features from Elasticsearch, it stands out as a fully open-source solution that offers more features for free.
 
-To kickstart our OpenSearch implementation, we first need to model the OpenSearch connection. Our goal is to implement four primary operations in OpenSearch: inserting a new record, updating an existing record, deleting a record, and retrieving search results.
+To kickstart our OpenSearch implementation, we first need to model the OpenSearch connection. Our goal is to implement four three operations in OpenSearch: inserting a new record, updating an existing record, deleting a record, and retrieving search results.
 
 ### Implementing the OpenSearch Client
 
