@@ -6,7 +6,7 @@ tags:
   - tutorial
   - beginners
   - pipelines
-series: Developing a GraphQL service
+series: Developing a GraphQL API with Go
 cover_image: ''
 canonical_url: null
 published: true

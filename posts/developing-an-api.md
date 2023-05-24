@@ -6,10 +6,10 @@ tags:
   - tutorial
   - elastic
   - postgres
-series: Developing a GraphQL service
+series: Developing a GraphQL API with Go
 cover_image: ''
 canonical_url: null
-published: false
+published: True
 id: 1309557
 ---
 Welcome to the second entry in our multi-part blog series on building a powerful application with Go! In our previous post, we laid the foundation by creating a Go-based project skeleton using GitLab, Docker, and Go-based linting and build tools. Now, we're ready to delve deeper into the development process and explore three crucial topics: creating an application configuration with envconfig, integrating a data persistence layer with Gorm, and indexing data with OpenSearch.
@@ -18,9 +18,9 @@ Efficiently managing application configuration, persisting data, and enabling po
 
 Specifically, we'll cover the following topics:
 
-1. **Creating an Application Configuration with envconfig**: We'll revisit the envconfig package to establish a flexible and centralized configuration system for our application. By leveraging environment variables, we'll make our application easily configurable across different deployment environments.
+1. **Creating an Application Configuration with envconfig**: We'll explore the envconfig package to establish a flexible and centralized configuration system for our application. By leveraging environment variables, we'll make our application easily configurable across different deployment environments.
 
-2. **Integrating a Data Persistence Layer with Gorm**: Gorm, a popular ORM library for Go, provides powerful abstractions for interacting with databases. We'll explore how to integrate Gorm into our application, enabling seamless data persistence operations. You'll learn about defining models, performing CRUD operations, and establishing relationships between entities.
+2. **Integrating a Data Persistence Layer with Gorm**: Gorm, a popular ORM library for Go, provides powerful abstractions for interacting with databases. We'll investigate how to integrate Gorm into our application, enabling seamless data persistence operations. You'll learn about defining models, performing CRUD operations, and establishing relationships between entities.
 
 3. **Indexing Data with OpenSearch**: OpenSearch, a high-performance search engine, allows us to efficiently index and search through large datasets. We'll integrate OpenSearch into our application and demonstrate how to leverage its indexing capabilities for quick and accurate search operations. You'll discover techniques for indexing data and executing various types of searches.
 
