@@ -9,8 +9,9 @@ tags:
 series: Developing a GraphQL API with Go
 cover_image: ''
 canonical_url: null
-published: True
+published: true
 id: 1309557
+date: '2023-05-24T16:28:25Z'
 ---
 Welcome to the second entry in our multi-part blog series on building a powerful application with Go! In our previous post, we laid the foundation by creating a Go-based project skeleton using GitLab, Docker, and Go-based linting and build tools. Now, we're ready to delve deeper into the development process and explore three crucial topics: creating an application configuration with envconfig, integrating a data persistence layer with Gorm, and indexing data with OpenSearch.
 
