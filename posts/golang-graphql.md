@@ -186,6 +186,57 @@ In the `schema.resolvers.go` file, we have resolver methods for the `Ingredient`
 
 Overall, after generating the code with `gqlgen`, the resolver files provide a starting point for implementing the actual logic for the resolvers, allowing you to customize the behavior of your GraphQL API.
 
+## Abstracting the Data Model: Implementing Services
+
+While we could proceed to call our data model methods directly from the resolvers we just generated, as a general best practice, we'll wrap our data model with a layer of abstraction called services. This approach provides several benefits and allows us to maintain separation of concerns. In the `internal/graph/services` folder, we'll create a service for each data model defined in the previous article.
+
+Each service will define an interface, `IIngredientService` in the case of the `Ingredient` model, which outlines the operations that can be performed on that specific data model. This interface serves as a contract and provides a generic abstraction for our resolvers. By working with interfaces, we can easily change the implementation of each service without impacting the resolvers. This flexibility comes in handy, especially when writing unit tests, where we can swap out a service implementation for a mock implementation.
+
+In the example of the `IngredientService`, we define two package aliases: `dbmodel` refers to the database model package created with gorm, and `apimodel` refers to the generated GraphQL model created with gqlgen. The `IngredientService` struct holds the necessary dependencies such as the database connection (`DB`), the OpenSearch connection (`ES`), and the context (`Context`).
+
+Within the `IngredientService`, we implement the methods defined in the `IIngredientService` interface. For instance, the `Create` method takes input from the GraphQL API, creates a new `dbmodel.Ingredient` instance, and saves it to the database using `svc.DB.Create()`. We can also perform additional logic or transformations as needed before returning the result converted to the GraphQL model (`apimodel.Ingredient`).
+
+```go
+package services
+
+type IIngredientService interface {
+    Create(input apimodel.NewIngredient) (*apimodel.Ingredient, error)
+    Update(id string, input map[string]interface{}) (*apimodel.Ingredient, error)
+    Delete(id string) (*apimodel.Ingredient, error)
+    FetchIngredient(id string) (*apimodel.Ingredient, error)
+    FetchIngredients(id string) (*apimodel.IngredientList, error)
+}
+
+type IngredientService struct {
+    DB      *gorm.DB
+    ES      index.OpenSearchConnection
+    Context context.Context
+}
+
+func (svc *IngredientService) Create(input apiModel.NewIngredient) (*apimodel.Ingredient, error) {
+    ingredient := dbmodel.Ingredient{
+        Name:        input.Name,
+        Measurement: input.Measurement,
+    }
+
+    if err := svc.DB.Create(&ingredient); err != nil {
+        log.Errorf("[IngredientService] could not save Ingredient => %v", err)
+    }
+
+    return ingredient.ConverToGraphQLModel()
+}
+
+type Services struct {
+    UserService IUserService
+}
+```
+
+The `Services` struct acts as a container for all the defined services, providing a convenient way to manage and access them in our application.
+
+By introducing this services layer, we achieve better organization, maintainability, and testability of our codebase.
+
+### Integrating Services Using Middleware
+
 ## Schema-Level Validation
 
 ## Faster Data Retrievers with dataloaden
