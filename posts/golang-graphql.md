@@ -136,6 +136,56 @@ This command triggers gqlgen to regenerate the necessary code based on the schem
 
 ## Implementing Resolvers
 
+After executing the `gqlgen generate` command, you will notice several new files in the `internal/graph` folder. Each model defined in the previous section will have a corresponding `.resolvers.go` file, which contains the implementation of the schema resolvers. Initially, these files will contain stubbed-out resolver methods.
+
+For example, let's consider the integration of mutations with the `Ingredient` type:
+
+```go
+package graph
+
+func (r *ingredientOpsResolver) Update(ctx context.Context, obj *model.IngredientOps, id string, input map[string]interface{}) (*model.Ingredient, error) {
+    // Resolver implementation here
+}
+
+type IngredientOpsResolver struct {
+    *Resolver
+}
+```
+
+In the above snippet, we have the resolver implementation for the `Update` mutation of the `Ingredient` type. Additionally, a `schema.resolvers.go` file is generated, which includes resolver functions for both queries and mutations:
+
+```go
+package graph
+
+func (r *queryResolver) Ingredient(ctx context.Context, id string) (model.Ingredient, error) {
+    // Resolver implementation here
+}
+
+func (r *mutationResolver) Ingredient(ctx context.Context) (*model.IngredientOps, error) {
+    return &model.IngredientOps{}, nil
+}
+
+func (r *Resolver) Mutation() generated.MutationResolver {
+    return &mutationResolver{r}
+}
+
+func (r *Resolver) Query() generated.QueryResolver {
+    return &queryResolver{r}
+}
+
+type mutationResolver struct {
+    *Resolver
+}
+
+type queryResolver struct {
+    *Resolver
+}
+```
+
+In the `schema.resolvers.go` file, we have resolver methods for the `Ingredient` query and the `Ingredient` mutation. These methods will be implemented with the required functionality to handle the corresponding GraphQL operations.
+
+Overall, after generating the code with `gqlgen`, the resolver files provide a starting point for implementing the actual logic for the resolvers, allowing you to customize the behavior of your GraphQL API.
+
 ## Schema-Level Validation
 
 ## Faster Data Retrievers with dataloaden
@@ -152,5 +202,6 @@ This command triggers gqlgen to regenerate the necessary code based on the schem
 
 - Keycloak golang webservices - <https://mikebolshakov.medium.com/keycloak-with-go-web-services-why-not-f806c0bc820a>
 - gqlgen - <https://gqlgen.com/>
+- Using GraphQL with Golang - <https://www.apollographql.com/blog/graphql/golang/using-graphql-with-golang/>
 - Custom GraphQL validation - <https://david-yappeter.medium.com/gqlgen-custom-data-validation-part-1-7de8ef92de4c>
 - Creating an Opinionated GraphQL Server with Go - <https://dev.to/cmelgarejo/creating-an-opinionated-graphql-server-with-go-part-2-46io>
