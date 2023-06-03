@@ -285,6 +285,36 @@ In this code snippet, we define the resolver method `CreateIngredient` which tak
 
 ## Schema-Level Validation
 
+To ensure the stability and security of your API, it is crucial not to blindly trust user input. One of the primary steps in handling incoming requests is validating the request body. By validating the request body, you can ensure that only expected and valid requests are processed, while also safeguarding your API against potential malicious code or attacks.
+
+Validating the request body serves as a defense mechanism to filter out any inappropriate or malformed input that could potentially compromise the integrity and security of your system. It allows you to verify the data's format, check for required fields, enforce data constraints, and perform any necessary sanitization or normalization.
+
+By implementing robust input validation mechanisms, you establish a strong line of defense against common security vulnerabilities such as injection attacks, cross-site scripting (XSS), and other forms of malicious exploits. It helps to mitigate the risk of unauthorized access, data breaches, and manipulation of sensitive information.
+
+In addition to ensuring security, proper input validation also contributes to the overall stability and reliability of your API. By rejecting invalid or unexpected requests early in the process, you can prevent errors, inconsistencies, and potential crashes that could occur when handling malformed data. This improves the overall robustness and performance of your API.
+
+Transitioning to the built-in validations provided by GraphQL, you can leverage the native validation capabilities of the GraphQL specification itself. GraphQL offers a range of predefined validation rules that can be applied to your schema and queries, ensuring data integrity and consistency.
+
+By utilizing these built-in validations, you can further enhance the validation process within your API. The GraphQL validation rules not only validate the incoming request body but also leverage the GraphQL schema to ensure the validity of the entire operation.
+
+The GraphQL schema acts as a blueprint for your API, defining the types, fields, and relationships that your API supports. During the validation process, GraphQL's built-in validations compare the structure and semantics of the incoming request against the schema. This schema-based validation ensures that the requested fields, arguments, and operations conform to the defined types and their respective constraints.
+
+By incorporating the schema in the validation process, you benefit from a powerful mechanism that checks not only the basic syntax but also the semantic correctness of the request. The validation rules analyze the query's structure, field usage, argument requirements, input object validation, and more, ensuring that the request aligns with the schema's expectations.
+
+The benefit of using GraphQL's built-in validations, which are schema-aware, is that they provide a standardized and declarative approach to ensure data quality. The validations are performed before executing the resolver functions, guaranteeing that the incoming request aligns with the schema's definitions.
+
+This schema-based validation approach offers several advantages. First, it allows you to catch and handle potential issues early on, reducing the chances of executing invalid or inconsistent operations. Second, it enables you to provide meaningful and precise error messages to clients, guiding them in making valid requests by highlighting specific violations against the schema. Third, it helps maintain the consistency and coherence of your API's responses by ensuring that the data returned adheres to the defined schema and meets the expected structure.
+
+Moreover, GraphQL's validation rules are extensible, allowing you to add custom validation logic tailored to your specific business requirements. This flexibility enables you to enforce additional business rules, perform complex validations, and integrate with any existing validation frameworks or libraries, all while leveraging the schema as the foundation for validation.
+
+We will extend GraphQL's built-in validation logic by introducing a custom directive that enables field-level validation, allowing us to impose additional constraints on specific fields. To begin, we'll define the new directive in our `schemas.graphqls` file, as shown in the snippet below:
+
+```graphql
+directive @validate(constraint: String!) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+```
+
+This directive, named `validate`, will be utilized on query arguments and fields within our `input` types. By applying this directive, we can specify a constraint that must be satisfied by the input provided for the annotated field.
+
 ## Faster Data Retrievers with dataloaden
 
 ## Integrating gqlgen with gin-gonic
