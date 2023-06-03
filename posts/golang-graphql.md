@@ -1,7 +1,10 @@
 ---
 title: Supercharge Your API Development with GraphQL and Go
 description: My article description
-tags: ''
+tags:
+  - go
+  - graphql
+  - tutorial
 cover_image: ''
 series: Developing a GraphQL API with Go
 canonical_url: null
@@ -221,10 +224,13 @@ func (svc *IngredientService) Create(input apiModel.NewIngredient) (*apimodel.In
 
     if err := svc.DB.Create(&ingredient); err != nil {
         log.Errorf("[IngredientService] could not save Ingredient => %v", err)
+        return nil, err
     }
 
-    return ingredient.ConverToGraphQLModel()
+    return ingredient.ConverToGraphQLModel(), nil
 }
+
+// Implement remaining service methods
 
 type Services struct {
     UserService IUserService
@@ -236,6 +242,46 @@ The `Services` struct acts as a container for all the defined services, providin
 By introducing this services layer, we achieve better organization, maintainability, and testability of our codebase.
 
 ### Integrating Services Using Middleware
+
+With our services implemented, the next step is to integrate them into our GraphQL implementation through the use of middleware. We'll leverage the HTTP server framework, gin-gonic, to set up the middleware. To begin, let's create a new folder called `internal/middleware`, which will contain our middleware files. Within this folder, we'll create a file named `services.middleware.go`. In this file, we'll define a function called `Services` that will serve as the middleware function, enhancing the server context with the services we defined earlier. Additionally, we'll create a function named `ForServices` that will be used to fetch the services from the server context.
+
+```go
+package middleware
+
+var serviceKey = &contextKey{name: "services"}
+
+// Services enhances the request context with the services
+func Services(db *gorm.DB, es index.OpensearchConnection) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        services := services.Services{
+            UserService:       &services.UserService{DB: db, ES: es, Context: c.Request.Context()},
+            PantryService:     &services.PantryService{DB: db, ES: es, Context: c.Request.Context()},
+            IngredientService: &services.IngredientService{DB: db, ES: es, Context: c.Request.Context()},
+        }
+        // Enhance the context with the services
+        c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), serviceKey, &services))
+        c.Next()
+    }
+}
+
+// ForServices is used to retrieve the service directory from the context
+func ForServices(ctx context.Context) *services.Services {
+    return ctx.Value(serviceKey).(*services.Services)
+}
+```
+
+The `Services` function is a gin.HandlerFunc that takes a database connection (`db`) and an OpenSearch connection (`es`) as parameters. Within this function, we create instances of the services we defined earlier, passing the necessary dependencies. The middleware then enhances the request context by adding the services to it using `context.WithValue()`. The `ForServices` function retrieves the services from the context based on the `serviceKey`.
+
+Within the context of our resolvers, we can now leverage our service implementation. For example, let's consider the implementation of an ingredient resolver:
+
+```go
+func (r *ingredientOpsResolver) CreateIngredient(ctx context.Context, obj *apimodel.IngredientOps, input apimodel.NewIngredient) (*apimodel.Ingredient, error) {
+    services := getServices(ctx)
+    return services.IngredientService.Create(input)
+}
+```
+
+In this code snippet, we define the resolver method `CreateIngredient` which takes the necessary context, the object being resolved (`obj`), and the input data (`input`). By calling `getServices(ctx)`, we retrieve the services from the context. With the services available, we can then invoke the `Create` method of the `IngredientService` to add a new ingredient based on the provided input. This integration of services within our resolvers allows us to easily interact with the underlying data models and perform the necessary operations.
 
 ## Schema-Level Validation
 
