@@ -10,6 +10,7 @@ series: Developing a GraphQL API with Go
 canonical_url: null
 published: false
 id: 1479976
+date: '2023-11-02T00:03:33Z'
 ---
 ## Setting up gqlgen for GraphQL Integration
 
