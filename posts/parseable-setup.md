@@ -9,6 +9,7 @@ cover_image: ''
 canonical_url: null
 published: true
 id: 2472453
+date: '2025-05-09T21:42:17Z'
 ---
 
 # Setting up Parseable with Kubernetes and Docker Desktop
