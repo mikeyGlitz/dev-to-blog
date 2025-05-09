@@ -308,6 +308,10 @@ curl -X POST http://host.docker.internal/logs/api/v1/ingest \
   ]'
 ```
 
+After sending some sample logs, you can view them in the Parseable UI by accessing `localhost:8000` in your browser:
+
+![Sample logs in Parseable UI](assets/Images/parseable-sample-logs.png)
+
 ## Next Steps
 
 - Configure log shipping from your applications
