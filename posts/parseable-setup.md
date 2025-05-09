@@ -266,6 +266,7 @@ You can now send logs to Parseable by making POST requests to the ingress endpoi
 curl -X POST http://host.docker.internal/logs/api/v1/ingest \
   -H "Content-Type: application/json" \
   -H "X-P-Stream: my-logs" \
+  -H "Authorization: Basic $(echo -n 'parseable:parseable' | base64)" \
   -d '{
     "timestamp": "2024-03-20T10:00:00Z",
     "level": "INFO",
@@ -277,6 +278,7 @@ curl -X POST http://host.docker.internal/logs/api/v1/ingest \
 
 In this example:
 - `X-P-Stream` header specifies the log stream name
+- `Authorization` header contains the base64-encoded credentials (username:password)
 - The JSON payload contains structured log data with:
   - `timestamp`: ISO 8601 formatted timestamp
   - `level`: Log level (INFO, ERROR, etc.)
@@ -289,6 +291,7 @@ You can send multiple log entries in a single request by using an array:
 curl -X POST http://host.docker.internal/logs/api/v1/ingest \
   -H "Content-Type: application/json" \
   -H "X-P-Stream: my-logs" \
+  -H "Authorization: Basic $(echo -n 'parseable:parseable' | base64)" \
   -d '[
     {
       "timestamp": "2024-03-20T10:00:00Z",
