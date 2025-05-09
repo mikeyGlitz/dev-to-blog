@@ -7,7 +7,7 @@ tags:
   - logging
 cover_image: ''
 canonical_url: null
-published: false
+published: true
 id: 2472453
 ---
 
