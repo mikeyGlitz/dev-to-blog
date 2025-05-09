@@ -19,10 +19,10 @@ This guide will walk you through setting up Parseable, a modern log analytics pl
 
 Before we begin, ensure you have the following prerequisites installed and configured:
 
-- Docker Desktop with Kubernetes enabled
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) with Kubernetes enabled
 - [Ingress-NGINX controller](https://kubernetes.github.io/ingress-nginx/deploy/) deployed on your Kubernetes cluster
 - `kubectl` configured to work with your Docker Desktop Kubernetes cluster
-- Ansible configured to run playbooks
+- [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) configured to run playbooks
 
 ## Table of Contents
 
@@ -314,9 +314,27 @@ After sending some sample logs, you can view them in the Parseable UI by accessi
 
 ## Next Steps
 
-- Configure log shipping from your applications
-- Set up log retention policies
-- Create dashboards and alerts
+Now that you have Parseable up and running, here are some recommended next steps to enhance your logging setup:
+
+1. **Configure Client-Side Log Shipping**
+   - Implement [pino.js](https://getpino.io) in your frontend applications for structured logging
+   - Set up a custom transport to send logs directly to Parseable's ingest endpoint
+   - Configure log levels and formatting for optimal analysis
+   - Implement error tracking and performance monitoring
+
+2. **Integrate with Grafana**
+   - Add [Parseable as a data source in Grafana](https://www.parseable.com/docs/server/visualization/grafana-data-source-configuration)
+   - Create dashboards to visualize your logs
+   - Set up alerts based on log patterns and thresholds
+   - Configure log exploration and analysis workflows
+
+3. **Implement Authentication with OpenID Connect**
+   - Set up [Keycloak](https://www.keycloak.org/) as your identity provider
+   - Configure Parseable to use [OpenID Connect for authentication](https://www.parseable.com/docs/server/features/oidc-openid-connect)
+   - Define user roles and permissions
+   - Implement SSO (Single Sign-On) for your logging platform
+
+Each of these steps will be covered in detail in upcoming articles. Would you like to proceed with any specific integration first?
 
 ## Troubleshooting
 
@@ -340,4 +358,3 @@ kubectl logs -l app.kubernetes.io/name=parseable
 ## Conclusion
 
 You now have a fully functional Parseable instance running on your local Kubernetes cluster. This setup provides a solid foundation for log analytics and monitoring in your development environment.
-
