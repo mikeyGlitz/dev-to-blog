@@ -1,13 +1,14 @@
 ---
 title: Setting up Parseable with Kubernetes and Docker Desktop
-description: A step-by-step guide to deploy Parseable, a log analytics platform, using Kubernetes on Docker Desktop
+description: 'A step-by-step guide to deploy Parseable, a log analytics platform, using Kubernetes on Docker Desktop'
 tags:
-- kubernetes
-- devops
-- logging
+  - kubernetes
+  - devops
+  - logging
 cover_image: ''
 canonical_url: null
 published: false
+id: 2472453
 ---
 
 # Setting up Parseable with Kubernetes and Docker Desktop
