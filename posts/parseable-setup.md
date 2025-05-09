@@ -29,12 +29,14 @@ Before we begin, ensure you have the following prerequisites installed and confi
 1. [Setting up MinIO](#setting-up-minio)
 2. [Deploying Parseable using Helm](#deploying-parseable)
 3. [Configuring Ingress](#configuring-ingress)
+4. [Complete Ansible Playbook](#complete-ansible-playbook)
 
 ## Setting up MinIO
 
 MinIO is an object storage system that Parseable uses for storing logs. Let's set it up first.
 
 ### Deploying MinIO
+
 We'll use Helm to deploy MinIO with some basic configuration. This setup creates a MinIO instance with a root user (minioadmin), configures a 10GB persistent volume for storage, and creates a bucket named "parseable". Additionally, we set up a service account with specific permissions - the account has access keys configured and is granted permissions to perform read, write and delete operations on objects within the parseable bucket, as well as list the bucket contents. This configuration ensures Parseable will have the necessary permissions to store and manage logs in MinIO.
 
 ```yml
@@ -145,6 +147,111 @@ To expose the Parseable ingest API endpoint for log ingestion, we'll create an I
                   number: 80
 ```
 
+## Complete Ansible Playbook
+
+For convenience, here's a complete Ansible playbook that combines all the tasks we've discussed. Create a file named `deploy-parseable.yml` with the following content:
+
+```yaml
+---
+- name: Deploy Parseable Stack
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Deploy MinIO using Helm
+      kubernetes.core.helm:
+        release_name: minio
+        release_namespace: minio
+        chart_ref: minio
+        chart_repo_url: https://charts.min.io
+        create_namespace: true
+        release_values:
+          rootUser: minioadmin
+          rootPassword: minioadmin
+          persistence:
+            size: 10Gi
+          buckets:
+            - name: parseable
+              policy: none
+              purge: false
+          svcaccts:
+            - accessKey: parseable
+              secretKey: 'parseable'
+              user: console
+              policy:
+                statements:
+                  - resources:
+                      - arn:aws:s3:::parseable/*
+                    actions:
+                      - s3:GetObject
+                      - s3:PutObject
+                      - s3:DeleteObject
+                  - resources:
+                      - arn:aws:s3:::parseable
+                    actions:
+                      - s3:ListBucket
+
+    - name: Deploy Parseable configuration
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: parseable-env-secret
+            namespace: parseable
+          data:
+            s3.url: "{{ 'https://minio.minio.svc.cluster.local:9000' | b64encode }}"
+            s3.access.key: "{{ 'parseable' | b64encode }}"
+            s3.secret.key: "{{ 'parseable' | b64encode }}"
+            s3.bucket: "{{ 'parseable' | b64encode }}"
+            addr: "{{ '0.0.0.0:8000' | b64encode }}"
+            staging.dir: "{{ './staging' | b64encode }}"
+            fs.dir: "{{ './data' | b64encode }}"
+            username: "{{ 'parseable' | b64encode }}"
+            password: "{{ 'parseable' | b64encode }}"
+
+    - name: Deploy Parseable helm chart
+      kubernetes.core.helm:
+        name: parseable
+        chart_ref: parseable
+        chart_repo_url: https://charts.parseable.com
+        release_namespace: parseable
+        values:
+          parseable:
+            store: s3-store
+
+    - name: Deploy the Parseable ingress
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: parseable-ingress
+            namespace: parseable
+            annotations:
+              kubernetes.io/ingress.class: nginx
+              nginx.ingress.kubernetes.io/use-regex: "true"
+              nginx.ingress.kubernetes.io/rewrite-target: /api/v1/ingest/$2
+          spec:
+            rules:
+            - host: parseable.local
+              http:
+                paths:
+                - path: /logs/api/v1/ingest(/|$)(.*)
+                  pathType: ImplementationSpecific
+                  backend:
+                    service:
+                      name: parseable
+                      port:
+                        number: 80
+```
+
+Run the complete playbook with:
+```bash
+ansible-playbook deploy-parseable.yml
+```
+
 ### Accessing Parseable
 
 Once deployed, you can access the Parseable UI by setting up port forwarding from your local machine to the Parseable service in the cluster. Run the following command to forward port 8000 on your local machine to port 80 of the Parseable service:
@@ -153,7 +260,50 @@ Once deployed, you can access the Parseable UI by setting up port forwarding fro
 kubectl port-forward -n parseable svc/parseable 8000:80
 ```
 
-You can now send logs to Parseable by making POST requests to the ingress endpoint at `host.docker.internal/logs/api/v1/ingest`.
+You can now send logs to Parseable by making POST requests to the ingress endpoint at `host.docker.internal/logs/api/v1/ingest`. Here's an example curl command that demonstrates how to send logs:
+
+```bash
+curl -X POST http://host.docker.internal/logs/api/v1/ingest \
+  -H "Content-Type: application/json" \
+  -H "X-P-Stream: my-logs" \
+  -d '{
+    "timestamp": "2024-03-20T10:00:00Z",
+    "level": "INFO",
+    "message": "Application started",
+    "service": "my-service",
+    "environment": "development"
+  }'
+```
+
+In this example:
+- `X-P-Stream` header specifies the log stream name
+- The JSON payload contains structured log data with:
+  - `timestamp`: ISO 8601 formatted timestamp
+  - `level`: Log level (INFO, ERROR, etc.)
+  - `message`: The actual log message
+  - Additional fields for context (service, environment, etc.)
+
+You can send multiple log entries in a single request by using an array:
+
+```bash
+curl -X POST http://host.docker.internal/logs/api/v1/ingest \
+  -H "Content-Type: application/json" \
+  -H "X-P-Stream: my-logs" \
+  -d '[
+    {
+      "timestamp": "2024-03-20T10:00:00Z",
+      "level": "INFO",
+      "message": "Application started",
+      "service": "my-service"
+    },
+    {
+      "timestamp": "2024-03-20T10:00:01Z",
+      "level": "INFO",
+      "message": "Database connection established",
+      "service": "my-service"
+    }
+  ]'
+```
 
 ## Next Steps
 
