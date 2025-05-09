@@ -4,10 +4,7 @@ description: A step-by-step guide to deploy Parseable, a log analytics platform,
 tags:
 - kubernetes
 - devops
-- parseable
 - logging
-- minio
-- ansible
 cover_image: ''
 canonical_url: null
 published: false
